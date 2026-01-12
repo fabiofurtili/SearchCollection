@@ -365,18 +365,15 @@ function renderOptionsBadges(s) {
 function renderStatus(found, count) {
   if (found === null || found === undefined) return "-";
   if (found) {
-    const qty = Number.isFinite(count) ? count : 0;
     return `
-      <span class="badge text-bg-success d-inline-flex align-items-center gap-1">
-        <i class="bi bi-check-circle"></i>
-        Disponivel (${qty})
+      <span class="text-success status-icon" title="Disponivel">
+        <i class="bi bi-check-circle-fill"></i>
       </span>
     `;
   }
   return `
-    <span class="badge text-bg-danger d-inline-flex align-items-center gap-1">
-      <i class="bi bi-x-circle"></i>
-      Indisponivel
+    <span class="text-danger status-icon" title="Indisponivel">
+      <i class="bi bi-x-circle-fill"></i>
     </span>
   `;
 }
@@ -452,9 +449,12 @@ function buildDetailsHtml(details) {
             const priceHtml = prices.length
               ? renderPriceTokens(prices)
               : "<span class=\"text-muted\">Sem preco</span>";
+            const lotLabel = lot?.name
+              ? escapeHtml(lot.name)
+              : `Item ${idx + 1}`;
             return `
               <li class="list-group-item d-flex align-items-center gap-2">
-                <span>Item ${idx + 1}</span>
+                <span class="fw-semibold">${lotLabel}</span>
                 <span class="flex-grow-1 lot-prices">${priceHtml}</span>
                 <a class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" href="https://mudream.online/pt/market" target="_blank" rel="noopener">
                   <i class="bi bi-box-arrow-up-right"></i>
@@ -490,7 +490,7 @@ function renderList() {
   if (searches.length === 0) {
     listEl.innerHTML = `
       <tr>
-        <td colspan="5" class="text-center text-muted py-4">
+        <td colspan="6" class="text-center text-muted py-4">
           Nenhuma pesquisa cadastrada.
         </td>
       </tr>
@@ -501,7 +501,7 @@ function renderList() {
   if (filtered.length === 0) {
     listEl.innerHTML = `
       <tr>
-        <td colspan="5" class="text-center text-muted py-4">
+        <td colspan="6" class="text-center text-muted py-4">
           Nenhuma pesquisa encontrada para o filtro selecionado.
         </td>
       </tr>
@@ -517,9 +517,12 @@ function renderList() {
         <td>${escapeHtml(s.type || "-")}</td>
         <td>${renderOptionsBadges(s)}</td>
         <td>${renderStatus(s.found, s.count)}</td>
+        <td>${Number.isFinite(s.count) ? s.count : "-"}</td>
         <td>
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="showDetails(${index})">Detalhes</button>
-          <button class="btn btn-sm btn-danger" onclick="removeSearch(${index})">Excluir</button>
+          <div class="d-inline-flex flex-nowrap gap-1">
+            <button class="btn btn-sm btn-outline-primary" onclick="showDetails(${index})">Detalhes</button>
+            <button class="btn btn-sm btn-danger" onclick="removeSearch(${index})">Excluir</button>
+          </div>
         </td>
       </tr>
     `;
@@ -561,7 +564,8 @@ window.showDetails = async function (index) {
   const bodyEl = document.getElementById("detailsBody");
   if (!modalEl || !titleEl || !bodyEl) return;
 
-  titleEl.textContent = `Detalhes - ${s.name || "Item"}`;
+  const detailLabel = s.type ? `${s.type} - ${s.name || "Item"}` : (s.name || "Item");
+  titleEl.textContent = `Detalhes - ${detailLabel}`;
   bodyEl.innerHTML = "<div class=\"text-muted\">Carregando...</div>";
 
   const modal = new bootstrap.Modal(modalEl);

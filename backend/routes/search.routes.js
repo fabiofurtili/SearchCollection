@@ -50,6 +50,46 @@ const QUERY = `query GET_ALL_LOTS($offset: NonNegativeInt, $limit: NonNegativeIn
     __typename
   }
 }`;
+const DETAILS_QUERY = `query GET_ALL_LOTS($offset: NonNegativeInt, $limit: NonNegativeInt, $sort: LotsSortInput, $filter: LotsFilterInput) {
+  lots(limit: $limit, offset: $offset, sort: $sort, filter: $filter) {
+    Lots {
+      id
+      name
+      source
+      isMine
+      type
+      gearScore
+      hasPendingCounterOffer
+      Prices {
+        value
+        Currency {
+          id
+          code
+          type
+          title
+          __typename
+        }
+        __typename
+      }
+      Currencies {
+        id
+        code
+        type
+        title
+        isAvailableForLots
+        __typename
+      }
+      __typename
+    }
+    Pagination {
+      total
+      currentPage
+      nextPageExists
+      __typename
+    }
+    __typename
+  }
+}`;
 
 const OPTION_FILTERS = {
   mh: "iml",
@@ -224,12 +264,12 @@ async function fetchLotsCount(filter) {
   }
 }
 
-async function fetchLotsDetails(filter) {
+async function fetchLotsDetailsWithQuery(filter, query) {
   const authHeader = getAuthHeader();
 
   const body = {
     operationName: "GET_ALL_LOTS",
-    query: QUERY,
+    query,
     variables: { filter, limit: DETAILS_LIMIT, offset: 0, sort: SORT }
   };
 
@@ -254,7 +294,10 @@ async function fetchLotsDetails(filter) {
 
   const payload = await res.json();
   if (payload.errors) {
-    throw createMarketError("Market GraphQL error", { retryable: false });
+    throw createMarketError("Market GraphQL error", {
+      retryable: false,
+      errors: payload.errors
+    });
   }
 
   const lots = payload?.data?.lots?.Lots || [];
@@ -266,6 +309,7 @@ async function fetchLotsDetails(filter) {
 
   const mappedLots = lots.map(lot => ({
     id: lot?.id,
+    name: lot?.name || null,
     prices: (lot?.Prices || []).map(price => ({
       value: price?.value,
       currency: normalizeCurrency(price?.Currency)
@@ -293,6 +337,20 @@ async function fetchLotsDetails(filter) {
     lots: mappedLots,
     summary: Array.from(summaryMap.values())
   };
+}
+
+async function fetchLotsDetails(filter) {
+  try {
+    return await fetchLotsDetailsWithQuery(filter, DETAILS_QUERY);
+  } catch (err) {
+    const errors = err?.market?.errors;
+    const missingField = Array.isArray(errors)
+      && errors.some(e => String(e?.message || "").includes("Cannot query field"));
+    if (missingField) {
+      return fetchLotsDetailsWithQuery(filter, QUERY);
+    }
+    throw err;
+  }
 }
 
 // ==========================

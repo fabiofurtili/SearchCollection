@@ -11,6 +11,14 @@ body {
   vertical-align: middle;
 }
 
+.table.table-hover > tbody > tr:hover > * {
+  background-color: #b3d6ff;
+}
+
+.status-icon {
+  font-size: 1.1rem;
+}
+
 /* Loading overlay bem visível */
 .loading-overlay {
   position: fixed;
