@@ -1,4 +1,4 @@
-# SendDream - Search Collection
+# SearchCollection
 
 Sistema web para cadastrar e executar pesquisas de itens, com area administrativa e controle de acesso por data.
 
