@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Search Collection Beta - Usuarios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/dream/frontend/css/style.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark px-3">
+  <span class="navbar-brand d-flex align-items-center gap-2">
+    <span>Search Collection</span>
+    <img src="/dream/frontend/img/XOsX.gif" alt="Logo" width="32" height="32">
+  </span>
+  <button class="btn btn-outline-light btn-sm" id="btnBack">Voltar</button>
+</nav>
+
+<div class="container my-4">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-pane" type="button" role="tab">
+        Usuarios
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="smtp-tab" data-bs-toggle="tab" data-bs-target="#smtp-pane" type="button" role="tab">
+        SMTP
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="discord-tab" data-bs-toggle="tab" data-bs-target="#discord-pane" type="button" role="tab">
+        Discord
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests-pane" type="button" role="tab">
+        Solicitacoes
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content pt-3">
+    <div class="tab-pane fade show active" id="users-pane" role="tabpanel" aria-labelledby="users-tab">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Controle de Usuarios</span>
+          <button class="btn btn-sm btn-outline-primary" id="btnReload">Recarregar</button>
+        </div>
+
+        <div class="card-body p-0">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th style="width: 6%;">ID</th>
+                <th style="width: 18%;">Usuario</th>
+                <th style="width: 20%;">Email</th>
+                <th style="width: 18%;">Acesso ate</th>
+                <th style="width: 18%;">Criado em</th>
+                <th style="width: 12%;">Nova Senha</th>
+                <th style="width: 8%;">Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="userList">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div class="text-muted" id="userPageInfo">Carregando...</div>
+        <div class="btn-group">
+          <button class="btn btn-outline-secondary btn-sm" id="btnPrevPage">Anterior</button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnNextPage">Proxima</button>
+        </div>
+      </div>
+
+      <div id="userError" class="text-danger mt-3 d-none"></div>
+      <div id="userOk" class="text-success mt-3 d-none"></div>
+    </div>
+
+    <div class="tab-pane fade" id="smtp-pane" role="tabpanel" aria-labelledby="smtp-tab">
+      <div class="card">
+        <div class="card-header">
+          Configuracao de Email (SMTP)
+        </div>
+        <div class="card-body">
+          <form id="smtpForm" class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">SMTP Host</label>
+              <input type="text" class="form-control" id="smtpHost" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">SMTP Porta</label>
+              <input type="number" class="form-control" id="smtpPort" required>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="smtpSecure">
+                <label class="form-check-label" for="smtpSecure">SSL/TLS</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">SMTP Usuario</label>
+              <input type="text" class="form-control" id="smtpUser">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">SMTP Senha</label>
+              <input type="password" class="form-control" id="smtpPass">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email Remetente</label>
+              <input type="email" class="form-control" id="smtpFrom" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email de Teste</label>
+              <input type="email" class="form-control" id="smtpTestTo">
+            </div>
+            <div class="col-12 d-flex gap-2">
+              <button class="btn btn-primary" type="submit">Salvar SMTP</button>
+              <button class="btn btn-outline-secondary" type="button" id="btnSmtpTest">Testar Envio</button>
+            </div>
+          </form>
+          <div id="smtpError" class="text-danger mt-3 d-none"></div>
+          <div id="smtpOk" class="text-success mt-3 d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="discord-pane" role="tabpanel" aria-labelledby="discord-tab">
+      <div class="card">
+        <div class="card-header">
+          Configuracao do Discord
+        </div>
+        <div class="card-body">
+          <form id="discordForm" class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Webhook URL</label>
+              <input type="text" class="form-control" id="discordWebhook" placeholder="https://discord.com/api/webhooks/...">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Cooldown (minutos)</label>
+              <input type="number" class="form-control" id="discordCooldown" min="1" value="120">
+            </div>
+            <div class="col-12 d-flex gap-2">
+              <button class="btn btn-primary" type="submit">Salvar Discord</button>
+              <button class="btn btn-outline-secondary" type="button" id="btnDiscordTest">Testar Discord</button>
+            </div>
+          </form>
+          <div id="discordError" class="text-danger mt-3 d-none"></div>
+          <div id="discordOk" class="text-success mt-3 d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="requests-pane" role="tabpanel" aria-labelledby="requests-tab">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>Solicitacoes de acesso</span>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <select id="requestStatusFilter" class="form-select form-select-sm w-auto">
+              <option value="all" selected>Todas</option>
+              <option value="pending">Pendentes</option>
+              <option value="done">Concluidas</option>
+              <option value="canceled">Canceladas</option>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" id="btnRequestReload">Recarregar</button>
+          </div>
+        </div>
+
+        <div class="card-body p-0">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th style="width: 5%;">ID</th>
+                <th>Usuario</th>
+                <th>Email cadastro</th>
+                <th>Nome</th>
+                <th>Email contato</th>
+                <th>Whatsapp</th>
+                <th>Plano</th>
+                <th>Moeda</th>
+                <th>Valor</th>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="requestList">
+              <!-- preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center justify-content-between mt-2">
+        <div class="text-muted" id="requestPageInfo">Carregando...</div>
+        <div class="btn-group">
+          <button class="btn btn-outline-secondary btn-sm" id="btnRequestPrevPage">Anterior</button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnRequestNextPage">Proxima</button>
+        </div>
+      </div>
+
+      <div id="requestError" class="text-danger mt-3 d-none"></div>
+      <div id="requestOk" class="text-success mt-3 d-none"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/dream/frontend/js/config.js"></script>
+<script src="/dream/frontend/js/admin-users.js"></script>
+</body>
+</html>

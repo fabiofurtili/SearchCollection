@@ -1,0 +1,14 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home2/devfurti/public_html/dream/backend"
+PassengerBaseURI "/dream/api"
+PassengerNodejs "/home2/devfurti/nodevenv/public_html/dream/backend/18/bin/node"
+PassengerAppType node
+PassengerStartupFile server.cjs
+PassengerAppLogFile "/home2/devfurti/logs/passenger.log"
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+SetEnv JWT_SECRET 123456@teste
+SetEnv BASE_PATH /dream/api
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END
