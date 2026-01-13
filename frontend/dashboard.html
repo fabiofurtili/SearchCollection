@@ -18,13 +18,17 @@
   </span>
   <div class="d-flex align-items-center gap-3">
     <span id="accessUntil" class="text-warning small d-none"></span>
-    <button class="btn btn-warning btn-sm d-none" id="btnRequestAccess">Solicitar acesso</button>
+    <button class="btn btn-warning btn-sm d-none" id="btnRequestAccess" data-i18n="dashboard.nav.request_access">Solicitar acesso</button>
     <a href="https://discord.gg/9F58mcTvr" class="btn btn-discord btn-sm" target="_blank" rel="noopener">
       <i class="bi bi-discord"></i>
-      Discord
+      <span data-i18n="dashboard.nav.discord">Discord</span>
     </a>
-    <button class="btn btn-outline-warning btn-sm d-none" id="btnAdminUsers">Admin</button>
-    <button class="btn btn-outline-light btn-sm" id="btnLogout">Sair</button>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Language">
+      <button type="button" class="btn btn-outline-light" data-lang-switch data-lang="pt">PT</button>
+      <button type="button" class="btn btn-outline-light" data-lang-switch data-lang="en">EN</button>
+    </div>
+    <button class="btn btn-outline-info btn-sm" id="btnProfile" data-i18n="dashboard.nav.profile">Perfil</button>
+    <button class="btn btn-outline-warning btn-sm d-none" id="btnAdminUsers" data-i18n="dashboard.nav.admin">Admin</button>
   </div>
 </nav>
 
@@ -32,19 +36,19 @@
 
   <!-- CONFIGURACOES DE BUSCA -->
   <div class="card mb-4">
-    <div class="card-header">Nova Pesquisa</div>
+    <div class="card-header" data-i18n="dashboard.new_search">Nova Pesquisa</div>
     <div class="card-body">
       <form id="searchForm" class="row g-3">
 
         <div class="col-md-4">
-          <label class="form-label">Nome do Item</label>
+          <label class="form-label" data-i18n="dashboard.item_name">Nome do Item</label>
           <input type="text" class="form-control" id="itemName" required>
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Tipo</label>
+          <label class="form-label" data-i18n="dashboard.type">Tipo</label>
           <select class="form-select" id="itemType" required>
-            <option value="" selected>Selecione...</option>
+            <option value="" selected data-i18n="dashboard.select">Selecione...</option>
             <option value="Helm">Helm</option>
             <option value="Armor">Armor</option>
             <option value="Gloves">Gloves</option>
@@ -54,7 +58,7 @@
         </div>
 
         <div class="col-md-4">
-          <label class="form-label">Opcoes</label>
+          <label class="form-label" data-i18n="dashboard.options">Opcoes</label>
           <div class="d-flex gap-3 mt-1 flex-wrap">
             <div class="form-check">
               <input class="form-check-input" type="checkbox" id="optMh">
@@ -89,7 +93,7 @@
         </div>
 
         <div class="col-12 text-end">
-          <button class="btn btn-success" type="submit">Adicionar Pesquisa</button>
+          <button class="btn btn-success" type="submit" data-i18n="dashboard.add_search">Adicionar Pesquisa</button>
         </div>
 
       </form>
@@ -99,17 +103,21 @@
   <!-- LISTA DE PESQUISAS -->
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span>Pesquisas Salvas [Qtd itens na lista <span id="savedSearchCount" class="text-success fw-semibold">0</span>]</span>
+      <span>
+        <span data-i18n="dashboard.saved_searches">Pesquisas Salvas</span>
+        [<span data-i18n="dashboard.saved_count">Qtd itens na lista</span>
+        <span id="savedSearchCount" class="text-success fw-semibold">0</span>]
+      </span>
       <div class="d-flex align-items-center gap-2 flex-wrap">
         <div class="input-group input-group-sm" style="width: 220px;">
           <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" class="form-control" id="searchFilter" placeholder="Buscar por nome">
+          <input type="text" class="form-control" id="searchFilter" placeholder="Buscar por nome" data-i18n-placeholder="dashboard.search_placeholder">
         </div>
         <select id="statusFilter" class="form-select form-select-sm w-auto">
-          <option value="all" selected>Todos</option>
-          <option value="available">Somente disponiveis</option>
+          <option value="all" selected data-i18n="dashboard.status_all">Todos</option>
+          <option value="available" data-i18n="dashboard.status_available">Somente disponiveis</option>
         </select>
-        <button class="btn btn-primary btn-run-search" id="btnRunSearch">Pesquisar Itens</button>
+        <button class="btn btn-primary btn-run-search" id="btnRunSearch" data-i18n="dashboard.run_search">Pesquisar Itens</button>
       </div>
     </div>
 
@@ -117,12 +125,12 @@
       <table class="table table-striped table-hover mb-0">
         <thead>
           <tr>
-            <th style="width: 28%;">Nome do Item</th>
-            <th style="width: 16%;">Tipo</th>
-            <th style="width: 32%;">Opcoes</th>
-            <th style="width: 8%;">Status</th>
-            <th style="width: 8%;">Qtd</th>
-            <th style="width: 12%;">Acoes</th>
+            <th style="width: 28%;" data-i18n="dashboard.table.name">Nome do Item</th>
+            <th style="width: 16%;" data-i18n="dashboard.table.type">Tipo</th>
+            <th style="width: 32%;" data-i18n="dashboard.table.options">Opcoes</th>
+            <th style="width: 8%;" data-i18n="dashboard.table.status">Status</th>
+            <th style="width: 8%;" data-i18n="dashboard.table.qty">Qtd</th>
+            <th style="width: 12%;" data-i18n="dashboard.table.actions">Acoes</th>
           </tr>
         </thead>
         <tbody id="searchList">
@@ -134,19 +142,69 @@
 
 </div>
 
+<!-- Perfil Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" data-i18n="dashboard.profile.title">Perfil</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <form id="profileForm" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.username">Usuario</label>
+            <input type="text" class="form-control" id="profileUsername" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.email">Email</label>
+            <input type="email" class="form-control" id="profileEmail" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.password">Nova senha</label>
+            <input type="password" class="form-control" id="profilePassword" data-i18n-placeholder="dashboard.profile.password_placeholder">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.password_confirm">Confirmar senha</label>
+            <input type="password" class="form-control" id="profilePasswordConfirm" data-i18n-placeholder="dashboard.profile.password_confirm_placeholder">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.created_at">Criado em</label>
+            <div class="form-control-plaintext" id="profileCreatedAt">-</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" data-i18n="dashboard.profile.access_until">Acesso ate</label>
+            <div class="form-control-plaintext" id="profileAccessUntil">-</div>
+          </div>
+        </form>
+        <div class="d-grid gap-2 mt-2">
+          <button type="button" class="btn btn-primary" id="btnProfileRenew" data-i18n="dashboard.profile.renew">Renovar acesso</button>
+          <button type="button" class="btn btn-outline-danger" id="btnProfileLogout" data-i18n="dashboard.nav.logout">Sair</button>
+        </div>
+        <div id="profileError" class="alert alert-warning mt-3 d-none" role="alert"></div>
+        <div id="profileOk" class="alert alert-success mt-3 d-none" role="alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.close">Fechar</button>
+        <button type="button" class="btn btn-primary" id="btnProfileSave" data-i18n="common.save">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Detalhes Modal -->
 <div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered details-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="detailsTitle">Detalhes</h5>
+        <h5 class="modal-title" id="detailsTitle" data-i18n="dashboard.details_title">Detalhes</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
       <div class="modal-body" id="detailsBody">
-        Carregando...
+        <span data-i18n="dashboard.details_loading">Carregando...</span>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.close">Fechar</button>
       </div>
     </div>
   </div>
@@ -156,8 +214,8 @@
 <div id="loading" class="loading-overlay d-none">
   <div class="text-center">
     <div class="spinner-border text-primary mb-3" style="width:3rem;height:3rem"></div>
-    <div id="loadingText" class="fw-semibold">Processando...</div>
-    <div class="text-muted mt-1" style="font-size: 0.95rem;">
+    <div id="loadingText" class="fw-semibold" data-i18n="dashboard.loading_default">Processando...</div>
+    <div class="text-muted mt-1" style="font-size: 0.95rem;" data-i18n="dashboard.loading_sub">
       Aguarde, isso pode levar alguns segundos.
     </div>
   </div>
@@ -168,41 +226,41 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Acesso ao sistema</h5>
+        <h5 class="modal-title" data-i18n="dashboard.access_modal.title">Acesso ao sistema</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-2">
+        <p class="mb-2" data-i18n-html="dashboard.access_modal.p1">
           Este sistema foi criado para ajudar jogadores do <strong>MuDream</strong> a organizar colecoes e equipamentos de forma pratica e eficiente.
         </p>
-        <p class="mb-2">
+        <p class="mb-2" data-i18n-html="dashboard.access_modal.p2">
           O acesso inicial e gratuito por tempo limitado, permitindo que voce conheca todas as funcionalidades.
           Apos esse periodo, sera solicitada uma contribuicao simbolica, utilizada apenas para manter o sistema ativo
           (hospedagem, dominio e melhorias continuas).
         </p>
-        <p class="mb-2">
+        <p class="mb-2" data-i18n-html="dashboard.access_modal.p3">
           Essa ferramenta e independente e nao possui vinculo oficial com o <strong>MuDream</strong>.
         </p>
-        <p class="mb-3">
+        <p class="mb-3" data-i18n="dashboard.access_modal.p4">
           Ao solicitar o acesso, voce concorda com estas condicoes.
         </p>
         <div style="margin-top:8px;">
-          <a href="#" class="link-termos">Termos de Uso</a>
+          <a href="#" class="link-termos" data-i18n="dashboard.access_modal.terms">Termos de Uso</a>
           <a href="https://discord.gg/9F58mcTvr" class="btn btn-sm btn-outline-secondary ms-2" target="_blank" rel="noopener">
             <i class="bi bi-discord"></i>
-            Discord Oficial
+            <span data-i18n="dashboard.access_modal.discord_official">Discord Oficial</span>
           </a>
         </div>
         <hr class="my-3">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-          <div class="text-muted">Escolha um plano:</div>
+          <div class="text-muted" data-i18n="dashboard.access_modal.choose_plan">Escolha um plano:</div>
           <div class="currency-toggle">
-            <span class="text-muted small">Moeda:</span>
+            <span class="text-muted small" data-i18n="dashboard.access_modal.currency">Moeda:</span>
             <div class="btn-group btn-group-sm" role="group" aria-label="Selecionar moeda">
               <input type="radio" class="btn-check" name="currencyMode" id="currencyBRL" autocomplete="off" checked>
-              <label class="btn btn-outline-secondary" for="currencyBRL">Real</label>
+              <label class="btn btn-outline-secondary" for="currencyBRL" data-i18n="dashboard.access_modal.real">Real</label>
               <input type="radio" class="btn-check" name="currencyMode" id="currencyUSD" autocomplete="off">
-              <label class="btn btn-outline-secondary" for="currencyUSD">Dolar</label>
+              <label class="btn btn-outline-secondary" for="currencyUSD" data-i18n="dashboard.access_modal.dolar">Dolar</label>
             </div>
           </div>
         </div>
@@ -214,7 +272,7 @@
                 <span class="plan-price-brl">R$ 4,99</span>
                 <span class="plan-price-usd">$ 0,99</span>
               </div>
-              <div class="plan-period">1 semana</div>
+              <div class="plan-period" data-i18n="dashboard.access_modal.plan_week">1 semana</div>
             </div>
           </label>
           <label class="plan-box">
@@ -225,7 +283,7 @@
                 <span class="plan-price-usd">$ 1,99</span>
                 <span class="plan-discount">53% OFF</span>
               </div>
-              <div class="plan-period">30 dias</div>
+              <div class="plan-period" data-i18n="dashboard.access_modal.plan_30">30 dias</div>
             </div>
           </label>
           <label class="plan-box">
@@ -236,19 +294,19 @@
                 <span class="plan-price-usd">$ 2,99</span>
                 <span class="plan-discount">65% OFF</span>
               </div>
-              <div class="plan-period">60 dias</div>
+              <div class="plan-period" data-i18n="dashboard.access_modal.plan_60">60 dias</div>
             </div>
           </label>
         </div>
         <div id="accessRequestError" class="alert alert-warning mt-3 d-none" role="alert"></div>
-        <div class="alert alert-info mt-3 mb-0" role="alert">
+        <div class="alert alert-info mt-3 mb-0" role="alert" data-i18n="dashboard.access_modal.info">
           Ao enviar a solicitacao, o administrador tentara responder o mais rapido possivel.
           Forma de pagamento no momento: PIX.
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        <button type="button" class="btn btn-primary" id="btnRequestNext">Proximo</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="common.close">Fechar</button>
+        <button type="button" class="btn btn-primary" id="btnRequestNext" data-i18n="dashboard.access_modal.next">Proximo</button>
       </div>
     </div>
   </div>
@@ -259,45 +317,45 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Dados da solicitacao</h5>
+        <h5 class="modal-title" data-i18n="dashboard.access_details.title">Dados da solicitacao</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
       <div class="modal-body">
         <div class="alert alert-light border mb-3" role="alert">
-          <div class="fw-semibold">Resumo do plano</div>
+          <div class="fw-semibold" data-i18n="dashboard.access_details.summary">Resumo do plano</div>
           <div id="requestPlanSummary" class="text-muted">-</div>
         </div>
         <form id="accessDetailsForm" class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Nome</label>
+            <label class="form-label" data-i18n="dashboard.access_details.first_name">Nome</label>
             <input type="text" class="form-control" id="requestFirstName" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Sobrenome</label>
+            <label class="form-label" data-i18n="dashboard.access_details.last_name">Sobrenome</label>
             <input type="text" class="form-control" id="requestLastName" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Email</label>
+            <label class="form-label" data-i18n="dashboard.access_details.email">Email</label>
             <input type="email" class="form-control" id="requestEmail" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Confirmar email</label>
+            <label class="form-label" data-i18n="dashboard.access_details.email_confirm">Confirmar email</label>
             <input type="email" class="form-control" id="requestEmailConfirm" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Celular/Whatsapp</label>
+            <label class="form-label" data-i18n="dashboard.access_details.phone">Celular/Whatsapp</label>
             <input type="text" class="form-control" id="requestPhone" required>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Observacoes (opcional)</label>
-            <input type="text" class="form-control" id="requestNotes" placeholder="Preferencia de contato, horario, etc">
+            <label class="form-label" data-i18n="dashboard.access_modal.contact_note">Observacoes (opcional)</label>
+            <input type="text" class="form-control" id="requestNotes" placeholder="Preferencia de contato, horario, etc" data-i18n-placeholder="dashboard.access_modal.contact_note_placeholder">
           </div>
         </form>
         <div id="accessDetailsError" class="alert alert-warning mt-3 d-none" role="alert"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" id="btnRequestBack">Voltar</button>
-        <button type="button" class="btn btn-primary" id="btnRequestSubmit">Enviar solicitacao</button>
+        <button type="button" class="btn btn-outline-secondary" id="btnRequestBack" data-i18n="dashboard.access_details.back">Voltar</button>
+        <button type="button" class="btn btn-primary" id="btnRequestSubmit" data-i18n="dashboard.access_details.submit">Enviar solicitacao</button>
       </div>
     </div>
   </div>
@@ -311,8 +369,8 @@
         <div class="success-icon text-success mb-3">
           <i class="bi bi-check-circle-fill"></i>
         </div>
-        <h5 class="mb-2">Solicitacao enviada com sucesso</h5>
-        <p class="text-muted mb-0">
+        <h5 class="mb-2" data-i18n="dashboard.access_sent.title">Solicitacao enviada com sucesso</h5>
+        <p class="text-muted mb-0" data-i18n="dashboard.access_sent.body">
           Retornaremos o mais breve possivel com a chave de pagamento no valor solicitado.
           Obrigado pelo apoio!
         </p>
@@ -320,9 +378,9 @@
       <div class="modal-footer">
         <a class="btn btn-outline-success me-auto" id="btnWhatsappContact" href="#" target="_blank" rel="noopener">
           <i class="bi bi-whatsapp"></i>
-          Solicitar via Whatsapp
+          <span data-i18n="dashboard.access_sent.whatsapp">Solicitar via Whatsapp</span>
         </a>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="dashboard.access_sent.ok">Ok</button>
       </div>
     </div>
   </div>
@@ -336,13 +394,13 @@
         <div class="success-icon text-success mb-3">
           <i class="bi bi-check-circle-fill"></i>
         </div>
-        <h5 class="mb-2">Acesso renovado</h5>
+        <h5 class="mb-2" data-i18n="dashboard.renewal.title">Acesso renovado</h5>
         <p class="text-muted mb-0" id="renewalText">
-          Obrigado pelo apoio. Seu acesso foi renovado.
+          <span data-i18n="dashboard.renewal.body">Obrigado pelo apoio. Seu acesso foi renovado.</span>
         </p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-i18n="dashboard.access_sent.ok">Ok</button>
       </div>
     </div>
   </div>
@@ -350,6 +408,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/dream/frontend/js/config.js"></script>
+<script src="/dream/frontend/js/i18n.js"></script>
 <script src="/dream/frontend/js/dashboard.js"></script>
 </body>
 </html>

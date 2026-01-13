@@ -5,6 +5,13 @@ const token = localStorage.getItem("token");
 if (!token) {
   window.location.replace(frontendUrl("index.html"));
 }
+const { t, getLocale } = window.I18N || {
+  t: (key, vars) => {
+    if (!vars) return key;
+    return String(key).replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? ""));
+  },
+  getLocale: () => "pt-BR"
+};
 
 const btnAdminUsers = document.getElementById("btnAdminUsers");
 const btnRequestAccess = document.getElementById("btnRequestAccess");
@@ -33,26 +40,30 @@ if (payload?.username === "admin" && btnAdminUsers) {
 
 const accessUntilEl = document.getElementById("accessUntil");
 let accessExpired = false;
-if (accessUntilEl && !isAdmin) {
+function updateAccessUntil() {
+  if (!accessUntilEl || isAdmin) return;
   const until = payload?.access_until ? new Date(payload.access_until) : null;
   if (!until || Number.isNaN(until.getTime()) || until.getTime() < Date.now()) {
     accessExpired = true;
-    accessUntilEl.textContent = "Acesso expirou";
+    accessUntilEl.textContent = t("dashboard.access.expired");
     accessUntilEl.classList.remove("text-warning");
     accessUntilEl.classList.add("text-danger");
     accessUntilEl.classList.remove("d-none");
     if (btnRequestAccess) btnRequestAccess.classList.remove("d-none");
   } else {
-    const formatted = new Intl.DateTimeFormat("pt-BR", {
+    accessExpired = false;
+    const formatted = new Intl.DateTimeFormat(getLocale(), {
       dateStyle: "short",
       timeStyle: "short"
     }).format(until);
-    accessUntilEl.textContent = `Acesso ate ${formatted}`;
+    accessUntilEl.textContent = t("dashboard.access.until", { date: formatted });
     accessUntilEl.classList.remove("text-danger");
     accessUntilEl.classList.add("text-warning");
     accessUntilEl.classList.remove("d-none");
   }
 }
+
+updateAccessUntil();
 
 function showRenewalModal(previousIso, currentIso) {
   const modalEl = document.getElementById("renewalModal");
@@ -62,12 +73,12 @@ function showRenewalModal(previousIso, currentIso) {
   const current = new Date(currentIso);
   if (Number.isNaN(current.getTime())) return;
 
-  const formatted = new Intl.DateTimeFormat("pt-BR", {
+  const formatted = new Intl.DateTimeFormat(getLocale(), {
     dateStyle: "short",
     timeStyle: "short"
   }).format(current);
 
-  textEl.textContent = `Parabens e obrigado pelo apoio! Seu acesso foi renovado ate ${formatted}.`;
+  textEl.textContent = t("dashboard.access.renew", { date: formatted });
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
 }
@@ -92,9 +103,24 @@ const optZen = document.getElementById("optZen");
 
 // Buttons
 const btnLogout = document.getElementById("btnLogout");
+const btnProfileLogout = document.getElementById("btnProfileLogout");
 const btnRunSearch = document.getElementById("btnRunSearch");
+const btnProfile = document.getElementById("btnProfile");
+const btnProfileSave = document.getElementById("btnProfileSave");
+const btnProfileRenew = document.getElementById("btnProfileRenew");
+const profileError = document.getElementById("profileError");
+const profileOk = document.getElementById("profileOk");
+const profileUsername = document.getElementById("profileUsername");
+const profileEmail = document.getElementById("profileEmail");
+const profilePassword = document.getElementById("profilePassword");
+const profilePasswordConfirm = document.getElementById("profilePasswordConfirm");
+const profileCreatedAt = document.getElementById("profileCreatedAt");
+const profileAccessUntil = document.getElementById("profileAccessUntil");
+let profileData = null;
 if (btnLogout) btnLogout.addEventListener("click", logout);
+if (btnProfileLogout) btnProfileLogout.addEventListener("click", logout);
 if (btnRunSearch) btnRunSearch.addEventListener("click", runSearch);
+if (btnProfile) btnProfile.addEventListener("click", showProfile);
 if (btnAdminUsers) {
   btnAdminUsers.addEventListener("click", () => {
     window.location.replace(frontendUrl("admin-users.html"));
@@ -125,6 +151,147 @@ if (btnRequestAccess) {
   });
 }
 
+function setProfileMessage(type, message) {
+  if (profileError) {
+    profileError.classList.add("d-none");
+    profileError.textContent = "";
+  }
+  if (profileOk) {
+    profileOk.classList.add("d-none");
+    profileOk.textContent = "";
+  }
+  if (!message) return;
+  if (type === "ok" && profileOk) {
+    profileOk.textContent = message;
+    profileOk.classList.remove("d-none");
+  } else if (profileError) {
+    profileError.textContent = message;
+    profileError.classList.remove("d-none");
+  }
+}
+
+function formatProfileDate(value) {
+  if (!value) return "-";
+  const d = new Date(String(value));
+  if (Number.isNaN(d.getTime())) return String(value);
+  return new Intl.DateTimeFormat(getLocale(), {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(d);
+}
+
+function fillProfile(data) {
+  profileData = data || null;
+  if (profileUsername) profileUsername.value = data?.username || "";
+  if (profileEmail) profileEmail.value = data?.email || "";
+  if (profilePassword) profilePassword.value = "";
+  if (profilePasswordConfirm) profilePasswordConfirm.value = "";
+  if (profileCreatedAt) profileCreatedAt.textContent = formatProfileDate(data?.created_at);
+  if (profileAccessUntil) {
+    profileAccessUntil.textContent = data?.access_until
+      ? formatProfileDate(data.access_until)
+      : "-";
+  }
+}
+
+async function loadProfile() {
+  setProfileMessage(null, "");
+  if (profileCreatedAt) profileCreatedAt.textContent = t("dashboard.profile_loading");
+  if (profileAccessUntil) profileAccessUntil.textContent = t("dashboard.profile_loading");
+  try {
+    const res = await fetch(apiUrl("users/me"), {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (res.status === 401) {
+      logout();
+      return;
+    }
+    if (!res.ok) throw new Error("PROFILE_LOAD");
+    const data = await res.json();
+    fillProfile(data);
+  } catch (e) {
+    setProfileMessage("error", t("dashboard.profile.load_error"));
+  }
+}
+
+async function showProfile() {
+  const modalEl = document.getElementById("profileModal");
+  if (!modalEl) return;
+  setProfileMessage(null, "");
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+  await loadProfile();
+}
+
+if (btnProfileSave) {
+  btnProfileSave.addEventListener("click", async () => {
+    const username = profileUsername?.value.trim() || "";
+    const email = profileEmail?.value.trim() || "";
+    const password = profilePassword?.value || "";
+    const confirm = profilePasswordConfirm?.value || "";
+
+    if (!username) {
+      setProfileMessage("error", t("dashboard.profile.username_required"));
+      return;
+    }
+    if (!email) {
+      setProfileMessage("error", t("dashboard.profile.email_required"));
+      return;
+    }
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+      setProfileMessage("error", t("dashboard.profile.email_invalid"));
+      return;
+    }
+    if (password || confirm) {
+      if (password !== confirm) {
+        setProfileMessage("error", t("dashboard.profile.password_mismatch"));
+        return;
+      }
+    }
+
+    const payload = {
+      username,
+      email
+    };
+    if (password) payload.password = password;
+
+    try {
+      const res = await fetch(apiUrl("users/me"), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.status === 401) {
+        logout();
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setProfileMessage("error", data?.error || t("dashboard.profile.save_error"));
+        return;
+      }
+      const data = await res.json();
+      fillProfile(data);
+      setProfileMessage("ok", t("dashboard.profile.save_ok"));
+    } catch (e) {
+      setProfileMessage("error", t("dashboard.profile.save_error"));
+    }
+  });
+}
+
+if (btnProfileRenew) {
+  btnProfileRenew.addEventListener("click", () => {
+    const profileModal = document.getElementById("profileModal");
+    if (profileModal) bootstrap.Modal.getOrCreateInstance(profileModal).hide();
+    const accessModal = document.getElementById("accessModal");
+    if (accessModal) bootstrap.Modal.getOrCreateInstance(accessModal).show();
+  });
+}
+
 function getSelectedPlan() {
   const selected = document.querySelector("input[name=\"accessPlan\"]:checked");
   const value = selected ? selected.value : "";
@@ -142,7 +309,9 @@ function updatePlanSummary() {
     30: { BRL: "R$ 9,99", USD: "$ 1,99" },
     60: { BRL: "R$ 14,99", USD: "$ 2,99" }
   };
-  const planLabel = planDays === 7 ? "1 semana" : `${planDays} dias`;
+  const planLabel = planDays === 7
+    ? t("dashboard.access_modal.plan_week")
+    : t("dashboard.access_modal.plan_days", { count: planDays });
   const price = priceMap[planDays]?.[currency] || "-";
   summaryEl.textContent = `${planLabel} - ${price} ${currency}`;
 }
@@ -163,10 +332,10 @@ if (btnRequestNext) {
     const { value } = getSelectedPlan();
     if (![7, 30, 60].includes(Number(value))) {
       if (accessErrorEl) {
-        accessErrorEl.textContent = "Selecione um plano valido.";
+        accessErrorEl.textContent = t("dashboard.alert_plan_invalid");
         accessErrorEl.classList.remove("d-none");
       } else {
-        alert("Selecione um plano valido.");
+        alert(t("dashboard.alert_plan_invalid"));
       }
       return;
     }
@@ -207,19 +376,19 @@ if (btnRequestSubmit) {
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!firstName || !lastName || !email || !emailConfirm || !phone) {
       if (accessDetailsError) {
-        accessDetailsError.textContent = "Preencha todos os campos obrigatorios.";
+        accessDetailsError.textContent = t("dashboard.alert_required_fields");
         accessDetailsError.classList.remove("d-none");
       } else {
-        alert("Preencha todos os campos obrigatorios.");
+        alert(t("dashboard.alert_required_fields"));
       }
       return;
     }
     if (!emailOk || email !== emailConfirm) {
       if (accessDetailsError) {
-        accessDetailsError.textContent = "Emails nao conferem ou sao invalidos.";
+        accessDetailsError.textContent = t("dashboard.alert_email_invalid");
         accessDetailsError.classList.remove("d-none");
       } else {
-        alert("Emails nao conferem ou sao invalidos.");
+        alert(t("dashboard.alert_email_invalid"));
       }
       return;
     }
@@ -253,10 +422,10 @@ if (btnRequestSubmit) {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         if (accessDetailsError) {
-          accessDetailsError.textContent = data?.error || "Falha ao enviar solicitacao.";
+          accessDetailsError.textContent = data?.error || t("dashboard.access_modal.request_error");
           accessDetailsError.classList.remove("d-none");
         } else {
-          alert(data?.error || "Falha ao enviar solicitacao.");
+          alert(data?.error || t("dashboard.access_modal.request_error"));
         }
         return;
       }
@@ -273,15 +442,17 @@ if (btnRequestSubmit) {
             30: { BRL: "R$ 9,99", USD: "$ 1,99" },
             60: { BRL: "R$ 14,99", USD: "$ 2,99" }
           };
-          const planLabel = planDays === 7 ? "1 semana" : `${planDays} dias`;
+          const planLabel = planDays === 7
+            ? t("dashboard.access_modal.plan_week")
+            : t("dashboard.access_modal.plan_days", { count: planDays });
           const price = priceMap[planDays]?.[currency] || "-";
           const userName = payload?.username || "usuario";
           const msg = [
-            "Ola! Solicitei acesso ao Search Collection.",
-            `Usuario: ${userName}`,
-            `Plano: ${planLabel}`,
-            `Moeda: ${currency}`,
-            `Valor: ${price}`
+            t("dashboard.whatsapp.greeting"),
+            t("dashboard.whatsapp.user", { user: userName }),
+            t("dashboard.whatsapp.plan", { plan: planLabel }),
+            t("dashboard.whatsapp.currency", { currency }),
+            t("dashboard.whatsapp.price", { price })
           ].join("\n");
           const phoneNumber = "5545991478250";
           whatsappBtn.href = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
@@ -292,10 +463,10 @@ if (btnRequestSubmit) {
     } catch (e) {
       console.error(e);
       if (accessDetailsError) {
-        accessDetailsError.textContent = "Falha ao enviar solicitacao.";
+        accessDetailsError.textContent = t("dashboard.access_modal.request_error");
         accessDetailsError.classList.remove("d-none");
       } else {
-        alert("Falha ao enviar solicitacao.");
+        alert(t("dashboard.access_modal.request_error"));
       }
     } finally {
       btnRequestSubmit.disabled = false;
@@ -331,7 +502,7 @@ if (!isAdmin && payload?.access_until) {
 // ========================
 function showLoading(text) {
   const txt = document.getElementById("loadingText");
-  if (txt) txt.innerText = text || "Processando...";
+  if (txt) txt.innerText = text || t("dashboard.loading_default");
   document.getElementById("loading").classList.remove("d-none");
 }
 
@@ -366,13 +537,13 @@ function renderStatus(found, count) {
   if (found === null || found === undefined) return "-";
   if (found) {
     return `
-      <span class="text-success status-icon" title="Disponivel">
+      <span class="text-success status-icon" title="${t("status.available")}">
         <i class="bi bi-check-circle-fill"></i>
       </span>
     `;
   }
   return `
-    <span class="text-danger status-icon" title="Indisponivel">
+    <span class="text-danger status-icon" title="${t("status.unavailable")}">
       <i class="bi bi-x-circle-fill"></i>
     </span>
   `;
@@ -380,7 +551,7 @@ function renderStatus(found, count) {
 
 function formatCurrencyValue(value) {
   if (value === null || value === undefined) return "-";
-  if (typeof value === "number" && Number.isFinite(value)) return value.toLocaleString("pt-BR");
+  if (typeof value === "number" && Number.isFinite(value)) return value.toLocaleString(getLocale());
   return String(value);
 }
 
@@ -442,23 +613,23 @@ function buildDetailsHtml(details) {
   const lotsHtml = lots.length
     ? `
       <div>
-        <div class="fw-semibold mb-2">Itens encontrados</div>
+        <div class="fw-semibold mb-2">${t("dashboard.details_list_title")}</div>
         <ul class="list-group list-group-flush">
           ${lots.map((lot, idx) => {
             const prices = Array.isArray(lot.prices) ? lot.prices : [];
             const priceHtml = prices.length
               ? renderPriceTokens(prices)
-              : "<span class=\"text-muted\">Sem preco</span>";
+              : `<span class="text-muted">${t("dashboard.details_no_price")}</span>`;
             const lotLabel = lot?.name
               ? escapeHtml(lot.name)
-              : `Item ${idx + 1}`;
+              : t("dashboard.item_label", { index: idx + 1 });
             return `
               <li class="list-group-item d-flex align-items-center gap-2">
                 <span class="fw-semibold">${lotLabel}</span>
                 <span class="flex-grow-1 lot-prices">${priceHtml}</span>
                 <a class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1" href="https://mudream.online/pt/market" target="_blank" rel="noopener">
                   <i class="bi bi-box-arrow-up-right"></i>
-                  Ir
+                  ${t("dashboard.button.go")}
                 </a>
               </li>
             `;
@@ -466,7 +637,7 @@ function buildDetailsHtml(details) {
         </ul>
       </div>
     `
-    : `<div class="text-muted">Nenhum lote encontrado.</div>`;
+    : `<div class="text-muted">${t("dashboard.details_no_lots")}</div>`;
 
   return lotsHtml;
 }
@@ -491,7 +662,7 @@ function renderList() {
     listEl.innerHTML = `
       <tr>
         <td colspan="6" class="text-center text-muted py-4">
-          Nenhuma pesquisa cadastrada.
+          ${t("dashboard.empty_list")}
         </td>
       </tr>
     `;
@@ -502,7 +673,7 @@ function renderList() {
     listEl.innerHTML = `
       <tr>
         <td colspan="6" class="text-center text-muted py-4">
-          Nenhuma pesquisa encontrada para o filtro selecionado.
+          ${t("dashboard.empty_filter")}
         </td>
       </tr>
     `;
@@ -520,8 +691,8 @@ function renderList() {
         <td>${Number.isFinite(s.count) ? s.count : "-"}</td>
         <td>
           <div class="d-inline-flex flex-nowrap gap-1">
-            <button class="btn btn-sm btn-outline-primary" onclick="showDetails(${index})">Detalhes</button>
-            <button class="btn btn-sm btn-danger" onclick="removeSearch(${index})">Excluir</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="showDetails(${index})">${t("dashboard.button.details")}</button>
+            <button class="btn btn-sm btn-danger" onclick="removeSearch(${index})">${t("dashboard.button.delete")}</button>
           </div>
         </td>
       </tr>
@@ -564,15 +735,17 @@ window.showDetails = async function (index) {
   const bodyEl = document.getElementById("detailsBody");
   if (!modalEl || !titleEl || !bodyEl) return;
 
-  const detailLabel = s.type ? `${s.type} - ${s.name || "Item"}` : (s.name || "Item");
-  titleEl.textContent = `Detalhes - ${detailLabel}`;
-  bodyEl.innerHTML = "<div class=\"text-muted\">Carregando...</div>";
+  const fallbackItem = t("dashboard.item_generic");
+  const detailName = s.name || fallbackItem;
+  const detailLabel = s.type ? `${s.type} - ${detailName}` : detailName;
+  titleEl.textContent = t("dashboard.details_prefix", { label: detailLabel });
+  bodyEl.innerHTML = `<div class="text-muted">${t("dashboard.details_loading")}</div>`;
 
   const modal = new bootstrap.Modal(modalEl);
   modal.show();
 
   if (!s.found) {
-    bodyEl.innerHTML = "<div class=\"text-muted\">Item indisponivel no momento.</div>";
+    bodyEl.innerHTML = `<div class="text-muted">${t("dashboard.details_unavailable")}</div>`;
     return;
   }
 
@@ -586,7 +759,7 @@ window.showDetails = async function (index) {
     }
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      bodyEl.innerHTML = `<div class="text-danger">${escapeHtml(data?.error || "Falha ao buscar detalhes.")}</div>`;
+      bodyEl.innerHTML = `<div class="text-danger">${escapeHtml(data?.error || t("dashboard.details_error"))}</div>`;
       return;
     }
 
@@ -594,7 +767,7 @@ window.showDetails = async function (index) {
     bodyEl.innerHTML = buildDetailsHtml(details);
   } catch (e) {
     console.error(e);
-    bodyEl.innerHTML = "<div class=\"text-danger\">Erro ao buscar detalhes.</div>";
+    bodyEl.innerHTML = `<div class="text-danger">${t("dashboard.details_error")}</div>`;
   }
 };
 
@@ -603,7 +776,7 @@ window.showDetails = async function (index) {
 // ========================
 async function loadSearches() {
   try {
-    showLoading("Carregando suas pesquisas...");
+    showLoading(t("dashboard.loading_searches"));
 
     const previousStatus = new Map(
       searches.map(s => [s.id, { found: s.found, count: s.count }])
@@ -655,7 +828,7 @@ async function loadSearches() {
 
     renderList();
   } catch (e) {
-    alert("Erro ao carregar pesquisas.");
+    alert(t("dashboard.alert_error_load"));
     console.error(e);
   } finally {
     hideLoading();
@@ -670,13 +843,13 @@ document.getElementById("searchForm").addEventListener("submit", async function 
 
   const name = itemName.value.trim();
   if (!name) {
-    alert("Informe o nome do item.");
+    alert(t("dashboard.alert_enter_name"));
     return;
   }
 
   const type = itemType.value.trim();
   if (!type) {
-    alert("Informe o tipo do item.");
+    alert(t("dashboard.alert_enter_type"));
     return;
   }
 
@@ -705,12 +878,12 @@ document.getElementById("searchForm").addEventListener("submit", async function 
   );
 
   if (isDuplicate) {
-    alert("Essa pesquisa ja foi cadastrada com o mesmo item, tipo e opcoes.");
+    alert(t("dashboard.alert_duplicate"));
     return;
   }
 
   try {
-    showLoading("Salvando pesquisa...");
+    showLoading(t("dashboard.loading_save"));
 
     const res = await fetch(apiUrl("search-configs"), {
       method: "POST",
@@ -731,7 +904,7 @@ document.getElementById("searchForm").addEventListener("submit", async function 
     this.reset();
     await loadSearches();
   } catch (e2) {
-    alert("Erro ao salvar a pesquisa.");
+    alert(t("dashboard.alert_error_save"));
     console.error(e2);
   } finally {
     hideLoading();
@@ -745,11 +918,11 @@ window.removeSearch = async function (index) {
   const s = searches[index];
   if (!s?.id) return;
 
-  const ok = confirm("Excluir esta pesquisa?");
+  const ok = confirm(t("dashboard.confirm_delete"));
   if (!ok) return;
 
   try {
-    showLoading("Excluindo pesquisa...");
+    showLoading(t("dashboard.loading_delete"));
 
     const res = await fetch(apiUrl(`search-configs/${s.id}`), {
       method: "DELETE",
@@ -765,7 +938,7 @@ window.removeSearch = async function (index) {
 
     await loadSearches();
   } catch (e) {
-    alert("Erro ao excluir a pesquisa.");
+    alert(t("dashboard.alert_error_delete"));
     console.error(e);
   } finally {
     hideLoading();
@@ -782,18 +955,18 @@ async function runSearch() {
       const modal = new bootstrap.Modal(modalEl);
       modal.show();
     } else {
-      alert("Acesso expirado. Solicite mais tempo para continuar.");
+      alert(t("dashboard.access_expired_request"));
     }
     return;
   }
 
   if (searches.length === 0) {
-    alert("Nenhuma pesquisa cadastrada.");
+    alert(t("dashboard.alert_no_searches"));
     return;
   }
 
   try {
-    showLoading("Pesquisando itens no market...");
+    showLoading(t("dashboard.loading_search"));
 
     const res = await fetch(apiUrl("search-configs/run"), {
       method: "POST",
@@ -819,7 +992,7 @@ async function runSearch() {
 
     renderList();
   } catch (e) {
-    alert("Erro ao executar a busca.");
+    alert(t("dashboard.alert_error_run"));
     console.error(e);
   } finally {
     hideLoading();
@@ -833,6 +1006,13 @@ function logout() {
   localStorage.removeItem("token");
   window.location.replace(frontendUrl("index.html"));
 }
+
+document.addEventListener("langchange", () => {
+  updateAccessUntil();
+  updatePlanSummary();
+  renderList();
+  if (profileData) fillProfile(profileData);
+});
 
 // init
 loadSearches();

@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import accessRoutes from "./routes/access.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config();
 
@@ -28,12 +29,14 @@ app.use("/auth", authRoutes);
 app.use("/search-configs", searchRoutes);
 app.use("/admin", adminRoutes);
 app.use("/access-requests", accessRoutes);
+app.use("/users", userRoutes);
 
 if (basePath) {
   app.use(`${basePath}/auth`, authRoutes);
   app.use(`${basePath}/search-configs`, searchRoutes);
   app.use(`${basePath}/admin`, adminRoutes);
   app.use(`${basePath}/access-requests`, accessRoutes);
+  app.use(`${basePath}/users`, userRoutes);
 }
 
 const frontendMounts = ["/frontend", "/dream/frontend"];
